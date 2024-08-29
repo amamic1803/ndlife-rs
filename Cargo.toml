@@ -1,0 +1,24 @@
+[package]
+name = "ndlife"
+version = "0.1.0"
+edition = "2021"
+authors = ["Antonio Mamić <antoniomamic007@gmail.com>"]
+description = "An infinite n-dimensional game of life "
+readme = "README.md"
+repository = "https://github.com/amamic1803/ndlife-rs"
+license = "MIT"
+keywords = ["game-of-life", "conway", "multidimensional", "life"]
+categories = ["simulation", "game-development"]
+include = [
+    "/src",
+    "/tests",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE",
+]
+
+[profile.release]
+lto = true
+
+[profile.test]
+opt-level = 3
