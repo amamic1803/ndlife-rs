@@ -372,6 +372,8 @@ impl<const N: usize> Life<N> {
 }
 
 /// Create new game of life with Conway's rules
+///
+/// The life is 2-dimensional and the birth rules are [3] and the survival rules are [2, 3].
 /// # Example
 /// ```
 /// use ndlife::life::{conways_game_of_life, Life};
