@@ -1,9 +1,9 @@
 [package]
 name = "ndlife"
-version = "0.1.0"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 authors = ["Antonio Mamić <antoniomamic007@gmail.com>"]
-description = "An infinite n-dimensional game of life "
+description = "An infinite, N-dimensional game of life"
 readme = "README.md"
 repository = "https://github.com/amamic1803/ndlife-rs"
 license = "MIT"
