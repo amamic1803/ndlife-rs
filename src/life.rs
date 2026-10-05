@@ -1,7 +1,7 @@
 //! An implementation of infinite, N-dimensional game of life.
 
-use std::borrow::Borrow;
 use crate::error::Error;
+use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 
 /// An infinite, N-dimensional game of life.
@@ -12,9 +12,8 @@ use std::collections::{HashMap, HashSet};
 ///
 /// let birth_rules = [3];
 /// let survival_rules = [2, 3];
-/// let alive_cells: HashSet<[i64; 2]> = [[0, 0], [1, 0], [2, 0], [2, 1], [1, 2]].into_iter().collect();
-///
-/// let mut life = Life::new_with_alive_cells(birth_rules, survival_rules, alive_cells).unwrap();
+/// let mut life = Life::new(birth_rules, survival_rules).unwrap();
+/// life.alive_cells_mut().extend([[0, 0], [1, 0], [2, 0], [2, 1], [1, 2]]);
 ///
 /// // advance 12 generations
 /// for _ in 0..12 {
@@ -220,7 +219,7 @@ impl<const N: usize> Life<N> {
         }
     }
 
-    /// Advance the game of life to the next generation.
+    /// Advance the game of life simulation by one generation.
     pub fn next_generation(&mut self) {
         let deltas = || {
             let mut ptr = 0;
@@ -277,9 +276,8 @@ impl<const N: usize> Life<N> {
     /// use ndlife::Life;
     /// use std::collections::HashSet;
     ///
-    /// let mut alive_cells = HashSet::new();
-    /// alive_cells.insert([1, 1]);
-    /// let mut life = Life::new_with_alive_cells(HashSet::new(), HashSet::new(), alive_cells).unwrap();
+    /// let mut life = Life::default();
+    /// life.alive_cells_mut().insert([1, 1]);
     ///
     /// life.next_generation();
     /// assert_eq!(vec![[1, 1]], life.changed_cells().copied().collect::<Vec<_>>());
@@ -307,7 +305,7 @@ impl<const N: usize> Default for Life<N> {
 /// assert_eq!(conways_life, conways_life_manual);
 /// ```
 pub fn conways_game_of_life() -> Life<2> {
-    Life::<2>::default()  // default creates a Life with Conway's rules
+    Life::<2>::default() // default creates a Life with Conway's rules
 }
 
 #[cfg(test)]
@@ -340,60 +338,52 @@ mod tests {
 
     #[test]
     fn test_birth_rules() {
-        let mut life = Life::<2>::new(HashSet::new(), HashSet::new()).unwrap();
         let birth_rules: HashSet<usize> = [3].into_iter().collect();
-        life.set_birth_rules(birth_rules.clone()).unwrap();
+        let life = Life::<2>::new(birth_rules.clone(), HashSet::<usize>::new()).unwrap();
         assert_eq!(life.birth_rules(), &birth_rules);
-        let birth_rules: HashSet<usize> = [0].into_iter().collect();
-        assert_eq!(
-            life.set_birth_rules(birth_rules),
-            Err(Error::ZeroNeighbourBirthRule)
-        );
-        let birth_rules: HashSet<usize> = [9].into_iter().collect();
-        assert_eq!(
-            life.set_birth_rules(birth_rules),
-            Err(Error::TooHighRule(9, 8))
-        );
+
+        let birth_rules = [0];
+        let life = Life::<2>::new(birth_rules, HashSet::<usize>::new());
+        assert_eq!(life, Err(Error::ZeroNeighbourBirthRule));
+
+        let birth_rules = [9];
+        let life = Life::<2>::new(birth_rules, HashSet::<usize>::new());
+        assert_eq!(life, Err(Error::TooHighRule(9, 8)));
     }
 
     #[test]
     fn test_survival_rules() {
-        let mut life = Life::<2>::new(HashSet::new(), HashSet::new()).unwrap();
         let survival_rules: HashSet<usize> = [2, 3].into_iter().collect();
-        life.set_survival_rules(survival_rules.clone()).unwrap();
+        let life = Life::<2>::new(HashSet::<usize>::new(), survival_rules.clone()).unwrap();
         assert_eq!(life.survival_rules(), &survival_rules);
-        let survival_rules: HashSet<usize> = [9].into_iter().collect();
-        assert_eq!(
-            life.set_survival_rules(survival_rules),
-            Err(Error::TooHighRule(9, 8))
-        );
+        let survival_rules = [9];
+        let life = Life::<2>::new(HashSet::<usize>::new(), survival_rules);
+        assert_eq!(life, Err(Error::TooHighRule(9, 8)));
     }
 
     #[test]
     fn test_alive_cells() {
-        let mut life = Life::<2>::new(HashSet::new(), HashSet::new()).unwrap();
-        assert_eq!(life.alive_cells(), &HashSet::new());
+        let mut life = Life::<2>::default();
+        assert!(life.alive_cells().is_empty());
 
+        life.alive_cells_mut().insert([0, 0]);
         let mut alive_cells = HashSet::new();
         alive_cells.insert([0, 0]);
-        life.set_alive_cells(alive_cells.clone());
         assert_eq!(life.alive_cells(), &alive_cells);
     }
 
     #[test]
     fn test_get_cell() {
-        let alive_cells: HashSet<[i64; 2]> = [[1, 1]].into_iter().collect();
-        let life = Life::new_with_alive_cells(HashSet::new(), HashSet::new(), alive_cells).unwrap();
+        let mut life = Life::<2>::default();
+        life.alive_cells_mut().insert([1, 1]);
         assert!(life.get_cell(&[1, 1]));
         assert!(!life.get_cell(&[0, 0]));
     }
 
     #[test]
     fn test_set_cell() {
-        let mut alive_cells = HashSet::new();
-        alive_cells.insert([1, 1]);
-        let mut life =
-            Life::new_with_alive_cells(HashSet::new(), HashSet::new(), alive_cells).unwrap();
+        let mut life = Life::<2>::default();
+        life.alive_cells_mut().insert([1, 1]);
         assert!(life.set_cell(&[1, 1], false));
         assert!(life.set_cell(&[0, 0], true));
         assert!(!life.set_cell(&[0, 0], true));
@@ -401,10 +391,8 @@ mod tests {
 
     #[test]
     fn test_toggle_cell() {
-        let mut alive_cells = HashSet::new();
-        alive_cells.insert([1, 1]);
-        let mut life =
-            Life::new_with_alive_cells(HashSet::new(), HashSet::new(), alive_cells).unwrap();
+        let mut life = Life::<2>::default();
+        life.alive_cells_mut().insert([1, 1]);
         life.toggle_cell(&[1, 1]);
         life.toggle_cell(&[0, 0]);
         let expected_alive_cells: HashSet<[i64; 2]> = [[0, 0]].into_iter().collect();
@@ -413,13 +401,9 @@ mod tests {
 
     #[test]
     fn test_next_generation() {
-        let birth_rules: HashSet<usize> = [3].into_iter().collect();
-        let survival_rules: HashSet<usize> = [2, 3].into_iter().collect();
-        let alive_cells: HashSet<[i64; 2]> = [[0, 0], [1, 0], [2, 0], [2, 1], [1, 2]]
-            .into_iter()
-            .collect();
-        let mut life =
-            Life::new_with_alive_cells(birth_rules, survival_rules, alive_cells).unwrap();
+        let mut life = Life::<2>::default();
+        life.alive_cells_mut()
+            .extend([[0, 0], [1, 0], [2, 0], [2, 1], [1, 2]]);
         for _ in 0..12 {
             life.next_generation();
         }
@@ -432,10 +416,8 @@ mod tests {
 
     #[test]
     fn test_changed_cells() {
-        let mut alive_cells = HashSet::new();
-        alive_cells.insert([1, 1]);
-        let mut life =
-            Life::new_with_alive_cells(HashSet::new(), HashSet::new(), alive_cells).unwrap();
+        let mut life = Life::<2>::default();
+        life.alive_cells_mut().insert([1, 1]);
         life.next_generation();
         assert_eq!(
             vec![[1, 1]],

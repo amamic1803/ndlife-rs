@@ -27,15 +27,7 @@ let mut life = Life::<2>::new(birth_rules, survival_rules).unwrap();
 // let mut life = conways_game_of_life();
 
 // glider pattern
-let mut alive_cells = HashSet::with_capacity(5);
-alive_cells.insert([0, 0]);
-alive_cells.insert([1, 0]);
-alive_cells.insert([2, 0]);
-alive_cells.insert([2, 1]);
-alive_cells.insert([1, 2]);
-
-// set initial state
-life.set_alive_cells(alive_cells);
+life.alive_cells_mut().extend([[0, 0], [1, 0], [2, 0], [2, 1], [1, 2]]);
 
 // advance life by 4 generations (repeat cycle for glider)
 for _ in 0..4 {
@@ -44,11 +36,7 @@ for _ in 0..4 {
 
 // glider moves one cell diagonally (right-down) every 4 generations
 let mut expected_alive_cells = HashSet::with_capacity(5);
-expected_alive_cells.insert([1, -1]);
-expected_alive_cells.insert([2, -1]);
-expected_alive_cells.insert([3, -1]);
-expected_alive_cells.insert([3, 0]);
-expected_alive_cells.insert([2, 1]);
+expected_alive_cells.extend([[1, -1], [2, -1], [3, -1], [3, 0], [2, 1]]);
 
 // assert that is indeed what happened
 assert_eq!(life.alive_cells(), &expected_alive_cells);

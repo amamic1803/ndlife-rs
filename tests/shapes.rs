@@ -1,7 +1,7 @@
 //! Test various shapes in the Conway's Game of Life
 
-use std::borrow::Borrow;
 use ndlife::conways_game_of_life;
+use std::borrow::Borrow;
 use std::collections::HashSet;
 
 /// Tests an initial shape in the Conway's Game of Life by running it for a number of rounds and checking the final state.
